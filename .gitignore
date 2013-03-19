@@ -1,0 +1,42 @@
+*.class
+*.log
+
+# py specific
+*.pyo
+*.pyc
+db.sqlite
+venv
+
+
+# sbt specific
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+# Scala-IDE specific
+.scala_dependencies
+
+# IntelliJ
+*/bin/*
+*/gen/*
+*/build/*
+*/nbproject/*
+*/dist/*
+out/*
+*.iws
+.idea*
+*.db
+*.log
+target/
+lib_managed/
+project/boot/
+project/build/target/
+project/plugins/target/
+project/plugins/lib_managed/
+project/plugins/src_managed/
+.idea/artifacts/
+*META-INF*
+.history
