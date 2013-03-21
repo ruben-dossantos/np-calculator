@@ -2,9 +2,14 @@ package cucumber
 
 import api.scala.{ScalaDsl, EN}
 import org.junit.Assert._
-import Calculator.Calc
-import Calculator.MultipleCalc
+import Calculator._
+import akka.actor.{ActorRef, Actor, Props, ActorSystem}
 import scala.Some
+import scala.concurrent.duration._
+import akka.util.Timeout
+import akka.pattern.ask
+import parallel.Future
+import concurrent.Await
 
 
 class CalculatorTest extends ScalaDsl with EN {
@@ -86,6 +91,44 @@ class CalculatorTest extends ScalaDsl with EN {
     }
   }
 
+
+
+  val system = ActorSystem("CalculatorSystem")
+  var actors : Map[String,ActorRef] = Map()
+  var actorsResults : Map[String,Option[Double]] = Map()
+  Given("""^a calculator actor named "([^"]*)"$"""){ (arg0:String) =>
+    val calc = arg0
+    val mcActor = system.actorOf(Props[MultipleCalcActor],name = calc)
+    actors += (calc->mcActor)
+  }
+
+  When("""^a number (-?\d+) is sent to actor "([^"]*)"$"""){ (arg0:Int, arg1:String) =>
+    val calc = arg1
+    val mcActor = actors(calc)
+    mcActor ! arg0
+
+  }
+
+
+  When("""^an operation "([^"]*)" is sent to actor "([^"]*)"$"""){ (arg0:Char, arg1:String) =>
+    val op = arg0
+    val calc = arg1
+    val mcActor = actors(calc)
+    implicit val timeout = Timeout(5 seconds)
+    val future = mcActor ? op
+    val result = Await.result(future, timeout.duration).asInstanceOf[Option[Double]]
+    actorsResults += (calc->result)
+  }
+
+  Then("""^the result in actor "([^"]*)" is (\d+)$"""){ (arg0:String, arg1:Int) =>
+    val calc = arg0
+
+    actorsResults(calc) match{
+      case Some(num)=>assertEquals(num,arg1,0)
+      case None => throw new Exception("Resultado invalido!")
+    }
+
+  }
 
 
 }
