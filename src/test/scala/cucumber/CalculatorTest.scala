@@ -3,12 +3,11 @@ package cucumber
 import api.scala.{ScalaDsl, EN}
 import org.junit.Assert._
 import Calculator._
-import akka.actor.{ActorRef, Actor, Props, ActorSystem}
+import akka.actor.{ActorRef, Props, ActorSystem}
 import scala.Some
 import scala.concurrent.duration._
 import akka.util.Timeout
 import akka.pattern.ask
-import parallel.Future
 import concurrent.Await
 
 

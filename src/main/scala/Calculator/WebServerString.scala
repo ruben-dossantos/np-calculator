@@ -9,13 +9,7 @@ import concurrent.Await
 import unfiltered.response.ResponseString
 import unfiltered.netty.Http
 
-/**
- * Created with IntelliJ IDEA.
- * User: ruben
- * Date: 3/22/13
- * Time: 5:41 PM
- * To change this template use File | Settings | File Templates.
- */
+
 object WebServerString extends App{
 
     var actor: ActorRef = null
