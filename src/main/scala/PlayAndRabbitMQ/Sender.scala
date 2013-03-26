@@ -1,12 +1,12 @@
 package PlayAndRabbitMQ
 
-import akka.actor.{ActorRef, Props, ActorSystem}
+import akka.actor.{Props, ActorSystem}
 import akka.routing.RoundRobinRouter
 
 
 object Sender {
 
-  def startSending = {
+  def startSending(){
     val connection = RabbitMQConnection.getConnection()
 
     val channel = connection.createChannel()

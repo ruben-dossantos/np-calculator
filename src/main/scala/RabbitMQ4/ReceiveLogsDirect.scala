@@ -23,9 +23,8 @@ object ReceiveLogsDirect {
 
      val queueName = channel.queueDeclare().getQueue
 
-     val severities:Array[String] = new Array[String](2)
-     severities(0) = "error"
-     severities(1) = "warning"
+     val severities:Array[String] = new Array[String](1)
+     severities(0) = "warning"
 
      if (severities.length<1){
        println("Usage: ReceiveLogsDirect [info] [warning] [error]")

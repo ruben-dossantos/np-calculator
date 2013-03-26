@@ -17,5 +17,5 @@ libraryDependencies ++= Seq(
 "org.slf4j" % "slf4j-nop" % "1.7.4",
 "net.databinder" %% "unfiltered" % "0.6.7",
 "net.databinder" %% "unfiltered-netty-server" % "0.6.7",
-"com.rabbitmq" % "amqp-client" % "2.8.1"
+"com.rabbitmq" % "amqp-client" % "3.0.4"
 )

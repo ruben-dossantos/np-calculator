@@ -1,16 +1,15 @@
-package Calculator
+package MQCalculator
 
 import collection.mutable
 
+class MultipleCalc{
 
-
-object Calc{
   val stack = new mutable.Stack[Double]
-
 
   def push(num:Double) = stack.push(num)
 
-  def op(op:Char):Option[Double] = {
+  def op(op:Char):Double = {
+
     try{
       val num2 = stack.pop()
       val num1 = stack.pop()
@@ -21,30 +20,30 @@ object Calc{
         case '+' =>
           result=num1+num2
           push(result)
-          Some(result)
+          result
         case '*' =>
           result=num1*num2
           push(result)
-          Some(result)
+          result
         case '-' =>
           result=num1-num2
           push(result)
-          Some(result)
+          result
         case '/' =>
           result=num1/num2
           push(result)
-          Some(result)
-        case _ => None
+          result
+        case _ => 0
       }
     }
     catch{
       case e: NoSuchElementException => {
         println("Faltam números na stack para fazer a operação!")
-        None
+        0
       }
       case _: Exception =>{
         println("Erro desconhecido!")
-        None
+        0
       }
     }
   }
@@ -54,4 +53,5 @@ object Calc{
       stack.pop()
     }
   }
+
 }
