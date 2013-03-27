@@ -1,51 +1,55 @@
 package MQCalculator
 
-import com.rabbitmq.client.QueueingConsumer
 import java.util.UUID
 import com.rabbitmq.client.AMQP.BasicProperties
 
-class MQClient() {
-  var connection = MQConnection.getConnection()
-  var channel = connection.createChannel()
+class MQClient() extends Similarity{
 
-  var result: Option[Double] = None
-  private val consumer = new QueueingConsumer(channel)
-  private val replyQueueName = channel.queueDeclare().getQueue
+  val replyQueueName = channel.queueDeclare().getQueue
   channel.basicConsume(replyQueueName, true, consumer)
-
 
   def SendNumber(num:Int, routingKey:String) {
     val numString = num.toString
     channel.basicPublish("", Config.RABBITMQ_REQUEST_QUEUE, null, numString.getBytes)
-    println("[x] Sent '" + routingKey + "':'" + numString + "'")
+
   }
 
-  def SendOperation(op:String, routingKey:String){
+  def SendOperation(op:String, routingKey:String) = {
     var response: String = null
     val corrId = UUID.randomUUID().toString
+    var result: Option[Double] = None
 
     val props = new BasicProperties.Builder().correlationId(corrId).replyTo(replyQueueName).build
 
-    println("[x] Sent '" + routingKey + "':'" + op + "'")
+
 
     channel.basicPublish("", Config.RABBITMQ_REQUEST_QUEUE, props, op.getBytes)
 
     var continue = true
     while (continue){
-      val delivery = consumer.nextDelivery()
-      if (delivery.getProperties.getCorrelationId.equals(corrId)){
-        println("recebi resposta")
-        response = new String(delivery.getBody)
-        result = Some(response.toDouble)
-        continue = false
+
+      try{
+        val delivery = consumer.nextDelivery()
+        if (delivery.getProperties.getCorrelationId.equals(corrId)){
+          response = new String(delivery.getBody)
+          val aux = response.split("\\(")
+          aux(0) match {
+            case "None" => {
+              result = None
+              continue = false
+            }
+            case "Some" =>{
+              val aux2 = aux(1).split("\\)")
+              result = Some(aux2(0).toDouble)
+              continue = false
+            }
+          }
+        }
+      }
+      catch{
+        case e: Exception => "Erro"
       }
     }
-    channel.close()
-    connection.close()
-  }
-
-  def getResult = {
     result
   }
-
 }

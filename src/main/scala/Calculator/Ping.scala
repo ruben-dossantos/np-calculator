@@ -3,31 +3,36 @@ package Calculator
 import akka.actor._
 
 case object PingMessage
+
 case object PongMessage
+
 case object StartMessage
+
 case object StopMessage
 
 
 class Ping(pong: ActorRef) extends Actor {
   var count = 0
-  def incrementAndPrint {
+
+  def incrementAndPrint() {
     count += 1
     println("ping")
   }
+
   def receive = {
     case StartMessage =>
-    incrementAndPrint
-    pong ! PingMessage
+      incrementAndPrint()
+      pong ! PingMessage
     case PongMessage =>
-    incrementAndPrint
-    if (count>99){
-      sender ! StopMessage
-      println("ping stopped")
-      context.stop(self)
-    }
-    else{
-      sender ! PingMessage
-    }
+      incrementAndPrint()
+      if (count > 99) {
+        sender ! StopMessage
+        println("ping stopped")
+        context.stop(self)
+      }
+      else {
+        sender ! PingMessage
+      }
   }
 
 }

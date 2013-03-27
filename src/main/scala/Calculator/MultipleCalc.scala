@@ -2,61 +2,73 @@ package Calculator
 
 import collection.mutable
 
-/**
- * Created with IntelliJ IDEA.
- * User: ruben
- * Date: 3/20/13
- * Time: 2:36 PM
- * To change this template use File | Settings | File Templates.
- */
-class MultipleCalc{
+class MultipleCalc {
+
   val stack = new mutable.Stack[Double]
+  var numAux: Double = 0
+  var hasStack = false
 
+  def push(num: Double) {
+    stack.push(num)
+    hasStack = true
+  }
 
-  def push(num:Double) = stack.push(num)
+  def op(op: Char): Option[Double] = {
 
-  def op(op:Char):Option[Double] = {
-
-    try{
+    try {
       val num2 = stack.pop()
+      numAux = num2
       val num1 = stack.pop()
+      if (stack.isEmpty) {
+        hasStack = false
+      }
 
 
-      var result:Double = 0
-      op match{
+      var result: Double = 0
+      op match {
         case '+' =>
-          result=num1+num2
+          result = num1 + num2
           push(result)
           Some(result)
         case '*' =>
-          result=num1*num2
+          result = num1 * num2
           push(result)
           Some(result)
         case '-' =>
-          result=num1-num2
+          result = num1 - num2
           push(result)
           Some(result)
-        case '/' =>
-          result=num1/num2
-          push(result)
-          Some(result)
+        case '/' => {
+          if (num2 != 0) {
+            result = num1 / num2
+            push(result)
+            Some(result)
+          }
+          else {
+            println("Tentativa de divisao por 0")
+            None
+          }
+        }
         case _ => None
       }
     }
-    catch{
+    catch {
       case e: NoSuchElementException => {
-        println("Faltam números na stack para fazer a operação!")
+        println("Faltam numeros na stack para fazer a operacao!")
+        if (hasStack) {
+          push(numAux)
+        }
         None
       }
-      case _: Exception =>{
+      case _: Exception => {
         println("Erro desconhecido!")
         None
       }
     }
   }
 
-  def clean(){
-    while(!stack.isEmpty){
+  def clean() {
+    while (!stack.isEmpty) {
       stack.pop()
     }
   }

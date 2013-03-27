@@ -10,7 +10,7 @@ object RPCServer {
     n match{
       case 0 => 0
       case 1 => 1
-      case n => fib(n-1)+fib(n-2)
+      case x => fib(x-1)+fib(x-2)
     }
   }
 

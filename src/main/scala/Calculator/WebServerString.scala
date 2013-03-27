@@ -1,4 +1,5 @@
 package Calculator
+
 import akka.actor._
 import unfiltered.request._
 import akka.actor.{Props, ActorSystem}
@@ -10,50 +11,60 @@ import unfiltered.response.ResponseString
 import unfiltered.netty.Http
 
 
-object WebServerString extends App{
+object WebServerString extends App {
 
-    var actor: ActorRef = null
-    var httpServer: Http = null
+  var actor: ActorRef = null
+  var httpServer: Http = null
 
 
+  def Start() {
 
-    def Start(){
+    val system = ActorSystem("WebServer")
+    actor = system.actorOf(Props[MultipleCalcActorString], "Actor")
 
-      val system = ActorSystem("WebServer")
-      actor = system.actorOf(Props[MultipleCalcActorString],"Actor")
-
-      val server = unfiltered.netty.cycle.Planify {
-        case req @ POST (Path("/number")) =>{
-          number(Body.string(req).toInt)
-          ResponseString("OK")
-        }
-        case req @ POST (Path("/operation")) => {
-          val result = operation(Body.string(req)(0))
-          ResponseString(result)
-        }
-        case _ => ResponseString("erro")
+    val server = unfiltered.netty.cycle.Planify {
+      case req@POST(Path("/number")) => {
+        number(Body.string(req).toInt)
+        ResponseString("OK")
       }
-      httpServer = unfiltered.netty.Http(8000).plan(server)
-      httpServer.start()
+      case req@POST(Path("/operation")) => {
+        val result = operation(Body.string(req))
+        ResponseString(result)
+      }
+      case _ => ResponseString("erro")
     }
+    httpServer = unfiltered.netty.Http(8000).plan(server)
+    httpServer.start()
+  }
 
-    def Stop(){
-      httpServer.stop()
+  def Stop() {
+    httpServer.stop()
+  }
+
+  def number(num: Int) {
+    actor ! num
+  }
+
+  def operation(op: String): String = {
+    if (op.length == 1) {
+      op.charAt(0) match {
+        case '+' => Action('+')
+        case '-' => Action('-')
+        case '*' => Action('*')
+        case '/' => Action('/')
+        case _ => "Operador desconhecido!"
+      }
     }
-
-    def number(num:Int){
-      println("Numero = "+num)
-      actor ! num
+    else {
+      "Demasiados caracteres na operacao!"
     }
+  }
 
-    def operation(op:Char) : String = {
-      implicit val timeout = Timeout(5 seconds)
-      val future = actor ? op
-      val result = Await.result(future, timeout.duration).asInstanceOf[String]
-      println("Result = "+result)
-      result
-    }
-
-
+  def Action(op: Char): String = {
+    implicit val timeout = Timeout(5 seconds)
+    val future = actor ? op
+    val result = Await.result(future, timeout.duration).asInstanceOf[String]
+    result
+  }
 
 }

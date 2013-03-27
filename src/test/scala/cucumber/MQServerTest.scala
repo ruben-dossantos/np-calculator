@@ -1,8 +1,7 @@
 package cucumber
 
 import api.scala.{EN, ScalaDsl}
-import MQCalculator.{MQClient, MQServer, MQConnection}
-import com.rabbitmq.client.{Connection, Channel}
+import MQCalculator.{MQClient, MQServer}
 import org.junit.Assert._
 import scala.Some
 
@@ -13,7 +12,7 @@ class MQServerTest extends ScalaDsl with EN{
   var result: Option[Double]= None
 
   Given("""^a rabbitmq server connection$"""){ () =>
-    MQServer.Connect()
+
   }
 
   Given("""^a service listening to routing key "([^"]*)"$"""){ (arg0:String) =>
@@ -30,7 +29,7 @@ class MQServerTest extends ScalaDsl with EN{
   }
 
   When("""^the client sends the operator "([^"]*)" to the server with the key "([^"]*)"$"""){ (arg0:String, arg1:String) =>
-    sender.SendOperation(arg0, arg1)
+    result = sender.SendOperation(arg0, arg1)
 
   }
 
@@ -47,13 +46,13 @@ class MQServerTest extends ScalaDsl with EN{
   }
 
   Then("""^the client should receive a reply with the value (-?\d+)$"""){ (arg0:Int) =>
-    result = sender.getResult
     result match{
       case Some(num)=>{
         assertEquals(num,arg0,0)
       }
       case None => println("Resultado Inválido")
     }
+    sender.StopMQ()
     MQServer.Disconnect()
 
   }

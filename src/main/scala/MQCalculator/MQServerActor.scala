@@ -1,90 +1,97 @@
 package MQCalculator
 
 import akka.actor.Actor
-import com.rabbitmq.client.{AMQP, BasicProperties, QueueingConsumer, Channel}
-import MQCalculator.MQServerActor.START
+import com.rabbitmq.client._
+import MQCalculator.MQServerActor.{STOP, START}
 
 
 object MQServerActor{
   object START
+  object STOP
 }
-class MQServerActor(channel:Channel, routingKey:String) extends Actor{
+class MQServerActor(routingKey:String) extends Actor with Similarity{
 
   def receive = {
     case START =>{
       startReceiving()
     }
+    case STOP => {
+      StopMQ()
+    }
   }
 
+
+
+
   def startReceiving() {
+
     val calculator = new MultipleCalc()
-    var result: Double = 0
+    var result: Option[Double] = None
+
 
     channel.queueDeclare(Config.RABBITMQ_REQUEST_QUEUE, false, false, false, null)
-//    channel.basicQos(1);
-
-    val consumer = new QueueingConsumer(channel)
 
     channel.basicConsume(Config.RABBITMQ_REQUEST_QUEUE, true, consumer)
 
 
-    println("[*] Waiting for messages. To exit press CTRL+C")
-    var elements = 0
 
-    while(elements != 3){
-      val delivery: QueueingConsumer.Delivery = consumer.nextDelivery()
 
-      val props: BasicProperties = delivery.getProperties
+
+    while(true){
+      val delivery = consumer.nextDelivery()
+
+      val props = delivery.getProperties
       val replyProps = new AMQP.BasicProperties.Builder().correlationId(props.getCorrelationId).build
 
       try{
         val message = new String(delivery.getBody)
         val n = Integer.parseInt(message)
-        println("[x] Received number '" + routingKey + "':'" + n + "'")
+
         calculator.push(n)
-        elements += 1
       }
       catch{
         case e:NumberFormatException => {
+
           val message = new String(delivery.getBody)
-          println("[x] Received operation'" + routingKey + "':'" + message + "'")
-          result = calculator.op(message.charAt(0))
-          elements += 1
+
+          if(message.length == 1){
+            val operator = message.charAt(0)
+            operator match {
+              case '+' => {
+                result = calculator.op(operator)
+                response(props, replyProps, result)
+              }
+              case '-' => {
+                result = calculator.op(operator)
+                response(props, replyProps, result)
+              }
+              case '/' => {
+                result = calculator.op(operator)
+                response(props, replyProps, result)
+              }
+              case '*' => {
+                result = calculator.op(operator)
+                response(props, replyProps, result)
+              }
+              case _ => {
+                println("Erro no reconhecimento do operador!")
+                response(props, replyProps, result)
+              }
+            }
+
+          }
+          else{
+            println("Erro! Mais do que um caracter para a operação")
+            response(props, replyProps, result)
+          }
         }
         case e: Exception => println("Erro")
       }
-      if (elements == 3){
-        println("cenas result")
-        channel.basicPublish("", props.getReplyTo, replyProps, result.toString.getBytes)
-//        channel.basicAck(delivery.getEnvelope.getDeliveryTag, false)
-      }
     }
-    /*try{
-      message = new String(delivery.getBody)
-      println("[x] Received '"+ routingKey +"':'" + message + "'")
-      val num = Integer.parseInt(message)
-      calculator.push(num)
-      println("Numero pushed")
-    }
-    catch{
-      case e:Exception =>{
-        try{
-          val op = message.charAt(0)
-          result = calculator.op(op)
-          println("Operacao pushed")
-        }
-        catch{
-          case e:Exception =>{
-            println("Erro!")
-          }
-        }
-        finally {
-          channel.basicPublish("", props.getReplyTo, replyProps, result.toString.getBytes)
+  }
 
-          channel.basicAck(delivery.getEnvelope.getDeliveryTag, false)
-        }
-      }
-    }*/
-
+  def response(props: BasicProperties, replyProps: AMQP.BasicProperties, result:Option[Double]){
+    channel.basicPublish("", props.getReplyTo, replyProps, result.toString.getBytes)
+    //channel.basicAck(delivery.getEnvelope.getDeliveryTag, false)
   }
 }

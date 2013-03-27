@@ -55,7 +55,7 @@ object ReceiveLogsTopic {
     finally {
       if (connection != null){
         try{
-          connection.close
+          connection.close()
         }
         catch{
           case e: Exception =>

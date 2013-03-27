@@ -2,13 +2,7 @@ package RabbitMQ3
 
 import com.rabbitmq.client.{QueueingConsumer, ConnectionFactory}
 
-/**
- * Created with IntelliJ IDEA.
- * User: ruben
- * Date: 3/25/13
- * Time: 5:12 PM
- * To change this template use File | Settings | File Templates.
- */
+
 object ReceiveLogs {
 
   private val EXCHANGE_NAME = "logs"

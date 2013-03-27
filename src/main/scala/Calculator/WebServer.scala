@@ -11,24 +11,23 @@ import unfiltered.response.ResponseString
 import unfiltered.netty.Http
 
 
-object WebServer extends App{
+object WebServer extends App {
 
 
   var actor: ActorRef = null
   var httpServer: Http = null
 
 
-
-  def Start(){
+  def Start() {
     val system = ActorSystem("WebServer")
-    actor = system.actorOf(Props[MultipleCalcActor],"Actor")
+    actor = system.actorOf(Props[MultipleCalcActor], "Actor")
     val server = unfiltered.netty.cycle.Planify {
-      case req @ POST (Path("/number")) =>{
+      case req@POST(Path("/number")) => {
         number(Body.string(req).toInt)
         ResponseString("OK")
       }
-      case req @ POST (Path("/operation")) => {
-        val result = operation(Body.string(req)(0))
+      case req@POST(Path("/operation")) => {
+        val result = operation(Body.string(req))
         ResponseString(result)
       }
       case _ => ResponseString("erro")
@@ -37,22 +36,37 @@ object WebServer extends App{
     httpServer.start()
   }
 
-  def Stop(){
+  def Stop() {
     httpServer.stop()
   }
 
-  def number(num:Int){
-    println("Numero = "+num)
+  def number(num: Int) {
+    println("Numero = " + num)
     actor ! num
   }
 
-  def operation(op:Char) : String = {
+  def operation(op: String): String = {
+    if (op.length == 1) {
+      op.charAt(0) match {
+        case '+' => Action('+')
+        case '-' => Action('-')
+        case '*' => Action('*')
+        case '/' => Action('/')
+        case _ => "Operador desconhecido!"
+      }
+    }
+    else {
+      "Demasiados caracteres na operacao!"
+    }
+  }
+
+  def Action(op: Char): String = {
     implicit val timeout = Timeout(5 seconds)
     val future = actor ? op
     val result = Await.result(future, timeout.duration).asInstanceOf[Option[Double]]
-    println("Result = "+result)
-    result match{
-      case Some(num) => num.toString()
+    println("Result = " + result)
+    result match {
+      case Some(num) => num.toString
       case None => throw new Exception("Resultado Invalido")
     }
   }

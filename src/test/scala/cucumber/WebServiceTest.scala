@@ -1,7 +1,7 @@
 package cucumber
 
 import api.scala.{ScalaDsl, EN}
-import Calculator.{WebServerString}
+import Calculator.WebServerString
 import org.junit.Assert._
 import dispatch._
 
@@ -23,9 +23,9 @@ class WebServiceTest  extends ScalaDsl with EN {
     res.apply()
   }
 
-  When("""^I POST an operation "([^"]*)" to /operation/$"""){ (arg0:Char) =>
+  When("""^I POST an operation "([^"]*)" to /operation/$"""){ (arg0:String) =>
     val urlLink = url("http://127.0.0.1:8000/operation")
-    urlLink << arg0.toString
+    urlLink << arg0
     val res = Http(urlLink OK as.String)
     res.apply()
     resultExp = res.toString()
@@ -36,12 +36,22 @@ class WebServiceTest  extends ScalaDsl with EN {
       case Some(num) => assertEquals(num,arg0,0)
       case None => throw new Exception("Resultado invalido!")
     } */
-    val aux = resultExp.trim.split("=")
-    val aux2 = aux(1).split("\\)")
-    resultExp = aux2(0).trim
-    val arg:Double = resultExp.toDouble
-    assertEquals(arg,arg0,0)
-    println("Resultado = "+resultExp)
+    try {
+      val aux = resultExp.trim.split("=")
+      val aux2 = aux(1).split("\\)")
+      resultExp = aux2(0).trim
+      val arg:Double = resultExp.toDouble
+      assertEquals(arg,arg0,0)
+    }
+    catch{
+      case e: ArrayIndexOutOfBoundsException =>{
+        println("Faltou informacao para comparar resultados!")
+      }
+      case e: Exception =>{
+        println("Erro desconhecido")
+      }
+    }
+
     WebServerString.Stop()
   }
 
